@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.10
+ARG PYTHON_VERSION=3.11
 
 # ---- Stage 1: install dependencies into a virtual environment ----
 FROM python:${PYTHON_VERSION}-slim AS builder

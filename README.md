@@ -19,9 +19,9 @@ You don't need Python or any ML libraries on your machine. Everything runs insid
 |---|---|---|
 | Docker Desktop (macOS / Windows) or Docker Engine (Linux) | Tested with Docker Desktop 4.94.0, Engine 29.8.2. Any Engine 24+ should work. | Builds and runs the image |
 | Git | Any recent version | Clones this repository |
-| Disk space | About 1.5 GB free | The base image, the built image (about 545 MB) and the exported tarball (about 110 MB) |
+| Disk space | About 1.5 GB free | The base image, the built image (about 580 MB) and the exported tarball (about 120 MB) |
 
-No Python, pip or scikit-learn is needed on the host. The image comes with Python 3.10 and pinned versions of every library.
+No Python, pip or scikit-learn is needed on the host. The image comes with Python 3.11 and pinned versions of every library.
 
 ### 1. Install Docker
 
@@ -58,7 +58,7 @@ One command builds the image and runs every step:
 ./run_lab.sh
 ```
 
-The first run downloads the `python:3.10-slim` base image and installs the libraries, which takes 1–3 minutes depending on your connection. Later runs take about 10 seconds because Docker caches the layers.
+The first run downloads the `python:3.11-slim` base image and installs the libraries, which takes 1–3 minutes depending on your connection. Later runs take about 10 seconds because Docker caches the layers.
 
 To remove everything the script created when it finishes (the containers, image, volume and tarball), run it with `--clean`. The `./output` folder is kept.
 
@@ -75,14 +75,14 @@ The script prints a `==>` header for each step. Docker's build log is left out b
 Client 29.8.2, Engine 29.8.2
 ==> Removing containers left from a previous run
 ==> Building lab1:latest
-Image size: 543MB
+Image size: 577MB
 ==> Creating named volume lab1-output
 Volume data stored at: /var/lib/docker/volumes/lab1-output/_data
 ==> Baseline training run (temporary container, removed on exit with --rm)
 Test accuracy: 0.9561
 Test ROC-AUC:  0.9937
 ==> Saving the image to lab1-image.tar.gz
-Tarball size: 111M
+Tarball size: 118M
 ==> Removing lab1:latest locally and loading it back from lab1-image.tar.gz
 lab1:latest removed
 Loaded image: lab1:latest
@@ -209,12 +209,12 @@ The base lab (`Labs/Docker_Labs/Lab1` in the course repo) is a one-stage `python
 
 | # | Area | Base lab | This version | What it does |
 |---|---|---|---|---|
-| 1 | Base image | `python:3.10` | `python:3.10-slim` | Removes compilers and system packages the job never uses. The image drops from **2.06 GB to 543 MB** on Apple Silicon (524 MB on Intel/AMD). |
-| 2 | Build stages | one stage | `builder` stage + `runtime` stage | The builder installs the libraries into a virtual environment at `/opt/venv`, then removes `pip` and `setuptools` from it. The runtime stage copies only that finished environment and the app code. With these libraries the size stays at 543 MB because they all come as prebuilt wheels. The split starts saving space as soon as a dependency needs compiling, because the compilers stay in the builder stage. |
+| 1 | Base image | `python:3.10` | `python:3.11-slim` | Removes compilers and system packages the job never uses. The image drops from **2.06 GB to 577 MB** on Apple Silicon (557 MB on Intel/AMD). Python 3.10 reaches end of life in October 2026, so the image moves to 3.11. |
+| 2 | Build stages | one stage | `builder` stage + `runtime` stage | The builder installs the libraries into a virtual environment at `/opt/venv`, then removes `pip` and `setuptools` from it. The runtime stage copies only that finished environment and the app code. With these libraries the size is about the same as a single-stage slim build because they all come as prebuilt wheels. The split starts saving space as soon as a dependency needs compiling, because the compilers stay in the builder stage. |
 | 3 | Layer caching | code and requirements copied together | `requirements.txt` copied and installed before the code | Editing `main.py` only rebuilds the last small layer instead of reinstalling all the libraries. |
 | 4 | Dependency versions | unpinned | `scikit-learn==1.7.2`, `joblib==1.6.0`, `numpy==2.2.6`, `scipy==1.15.3`, `threadpoolctl==3.7.0` | Every library, including the ones scikit-learn pulls in, is pinned, so every build installs the same versions and results don't change when a new release comes out. |
 | 5 | User | root | `appuser` (uid 1000) | If the code is compromised, it doesn't have root inside the container. `docker run --rm lab1:latest whoami` prints `appuser`. |
-| 6 | Build argument | none | `ARG PYTHON_VERSION=3.10` | `docker build --build-arg PYTHON_VERSION=3.11 .` builds on another Python version without editing the file. |
+| 6 | Build argument | none | `ARG PYTHON_VERSION=3.11` | `docker build --build-arg PYTHON_VERSION=3.12 .` builds on another Python version without editing the file. Tested with 3.11 and 3.12, which give the same results. |
 | 7 | Labels | none | OCI labels (title, description, author, source) | Metadata about the image, shown by `docker inspect`. |
 | 8 | Start command | `CMD ["python", "main.py"]` | `ENTRYPOINT` script plus `CMD ["train"]` | One image does several jobs: `train`, `predict`, `help`, or any other command. See [How it works](#how-it-works). |
 | 9 | Prediction | none | `predict` mode (`src/predict.py`) | Loads the saved model and scores random dataset rows or a CSV that you mount in. Writes `predictions.csv`. |
@@ -247,7 +247,7 @@ The base lab (`Labs/Docker_Labs/Lab1` in the course repo) is a one-stage `python
 ### The build
 
 ```
-builder stage (python:3.10-slim)          runtime stage (python:3.10-slim)
+builder stage (python:3.11-slim)          runtime stage (python:3.11-slim)
   python -m venv /opt/venv                  useradd appuser
   pip install -r requirements.txt   ---->   COPY --from=builder /opt/venv
   pip uninstall pip setuptools              COPY src/ /app
