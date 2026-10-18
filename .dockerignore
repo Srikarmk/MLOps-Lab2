@@ -1,0 +1,7 @@
+.git
+.gitignore
+*.md
+*.tar
+output/
+__pycache__/
+*.pyc

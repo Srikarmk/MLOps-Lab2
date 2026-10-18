@@ -1,14 +1,18 @@
-# Use an official Python runtime as a parent image
-FROM python:3.10
+FROM python:3.10-slim
 
-# Set the working directory in the container
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
 WORKDIR /app
 
-# Copy the model training script into the container
+# Install dependencies first so this layer is cached between code changes
+COPY src/requirements.txt .
+RUN pip install --root-user-action=ignore -r requirements.txt
+
 COPY src/ .
 
-# Install Scikit-Learn and joblib
-RUN pip install -r requirements.txt
+ENV OUTPUT_DIR=/app/output
 
-# Run the script when the container launches
 CMD ["python", "main.py"]
