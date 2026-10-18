@@ -44,7 +44,7 @@ docker image ls "$IMAGE" --format 'Image size: {{.Size}}'
 
 step "Creating named volume $VOLUME"
 docker volume create "$VOLUME" >/dev/null
-docker volume inspect "$VOLUME" --format 'Mountpoint inside the Docker VM: {{.Mountpoint}}'
+docker volume inspect "$VOLUME" --format 'Volume data stored at: {{.Mountpoint}}'
 
 step "Baseline training run (temporary container, removed on exit with --rm)"
 docker run --rm -v "$VOLUME:/app/output" "$IMAGE" train | grep -E 'Test (accuracy|ROC-AUC)'
