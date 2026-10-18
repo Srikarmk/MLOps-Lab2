@@ -5,3 +5,6 @@
 output/
 __pycache__/
 *.pyc
+*.tar.gz
+samples/
+run_lab.sh
