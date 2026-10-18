@@ -17,8 +17,8 @@ RUN pip install -r requirements.txt \
 # ---- Stage 2: runtime image with only the venv and the app code ----
 FROM python:${PYTHON_VERSION}-slim AS runtime
 
-LABEL org.opencontainers.image.title="iris-trainer" \
-      org.opencontainers.image.description="Trains and evaluates a Random Forest on the Iris dataset" \
+LABEL org.opencontainers.image.title="breast-cancer-trainer" \
+      org.opencontainers.image.description="Trains and evaluates a Random Forest on the Breast Cancer Wisconsin dataset" \
       org.opencontainers.image.authors="Srikarmk" \
       org.opencontainers.image.source="https://github.com/Srikarmk/MLOps-Lab2"
 
