@@ -12,12 +12,26 @@ N_DEMO_SAMPLES = int(os.getenv("N_DEMO_SAMPLES", "5"))
 
 
 def load_samples(csv_path, feature_names):
+    if not os.path.isfile(csv_path):
+        sys.exit(f"Input file {csv_path} not found. Check the path and that its folder is mounted with -v.")
+
     with open(csv_path, newline="") as f:
         reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            sys.exit(f"Input file {csv_path} is empty.")
         missing = [name for name in feature_names if name not in reader.fieldnames]
         if missing:
             sys.exit(f"Input CSV is missing {len(missing)} feature column(s), e.g. '{missing[0]}'")
-        rows = [[float(row[name]) for name in feature_names] for row in reader]
+
+        rows = []
+        for line_no, row in enumerate(reader, start=2):
+            try:
+                rows.append([float(row[name]) for name in feature_names])
+            except (TypeError, ValueError):
+                sys.exit(f"Line {line_no} of {csv_path} has a missing or non-numeric value.")
+
+    if not rows:
+        sys.exit(f"Input CSV {csv_path} has a header but no data rows.")
     return np.array(rows), None
 
 
