@@ -39,4 +39,6 @@ USER appuser
 
 VOLUME ["/app/output"]
 
-CMD ["python", "main.py"]
+# ENTRYPOINT is fixed, CMD is the default argument and can be overridden on `docker run`
+ENTRYPOINT ["sh", "/app/entrypoint.sh"]
+CMD ["train"]

@@ -8,8 +8,12 @@ This lab trains a Random Forest classifier on the Breast Cancer Wisconsin datase
 .
 ├── dockerfile
 ├── .dockerignore
+├── samples/
+│   └── new_samples.csv    # 4 example rows for `predict`
 └── src/
+    ├── entrypoint.sh      # picks the mode: train / predict / any command
     ├── main.py            # trains, evaluates and saves the model
+    ├── predict.py         # loads the saved model and scores new samples
     └── requirements.txt   # pinned dependencies
 ```
 
@@ -46,6 +50,18 @@ Change hyperparameters without rebuilding:
 ```sh
 docker run --rm -v "$(pwd)/output:/app/output" -e N_ESTIMATORS=200 -e TEST_SIZE=0.3 lab1:v2
 ```
+
+Score new samples with the saved model (mount the same `output` folder so `predict` can find it):
+
+```sh
+# 5 random rows from the dataset, shown next to their true labels
+docker run --rm -v "$(pwd)/output:/app/output" lab1:v2 predict
+
+# your own CSV, mounted read-only
+docker run --rm -v "$(pwd)/output:/app/output" -v "$(pwd)/samples:/app/input:ro" lab1:v2 predict /app/input/new_samples.csv
+```
+
+Predictions are printed and written to `output/predictions.csv`. Run `docker run --rm lab1:v2 help` to see every mode.
 
 Export the image as a tarball (git ignores the `.tar` file):
 
